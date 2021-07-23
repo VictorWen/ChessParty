@@ -2,9 +2,12 @@ const Discord = require('discord.js');
 const ChessBoard = require('./chess_board.js')
 const {prefix, token} = require('./config.json')
 const client = new Discord.Client();
+const Buttons = require('discord-buttons');
+Buttons(client);
 
 commands = {};
-let board; 
+let board;
+let place_coord;
 
 client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
@@ -22,7 +25,7 @@ client.on('message', async message => {
 })
 
 async function show_board(channel) {
-    await channel.send("", {embed: {description: board.get_board_string_with_labels()}});
+    await channel.send("", { embed: { description: board.get_board_string_with_labels() } });
 }
 
 commands["reset"] = async function(channel, args) {
@@ -34,12 +37,48 @@ commands["show"] = async function(channel, args) {
     await show_board(channel);
 }
 
-commands["move"] = async function(channel, args) {
-    if (!board.move(args[0], args[1])) {
+let move = async function(channel, args) {
+    if (args.length < 2 || !board.move(args[0].toUpperCase(), args[1].toUpperCase())) {
         await channel.send("**INVALID MOVE**")
     }
     else
         await show_board(channel);
 }
+commands["move"] = move;
+commands["m"] = move;
+
+let place = async function(channel, args) {
+    if (args.length < 1 || !board.is_valid_coord(args[0].toUpperCase())) {
+        channel.send("**INVALID COORDINATE**");
+        return;
+    }
+    
+    place_coord = args[0].toUpperCase();
+
+    let menu = new Buttons.MessageMenu()
+        .setID("placementMenu")
+        .setPlaceholder("Choose a piece")
+        .setMinValues(1)
+        .setMaxValues(1);
+
+    for (const key in board.pieces) {
+        menu.addOption(new Buttons.MessageMenuOption()
+            .setLabel(board.pieces[key])
+            .setDescription(key)
+            .setValue(key));
+    }
+
+    channel.send("Choose a piece", menu);
+}
+commands["place"] = place;
+commands["p"] = place;
+
+client.on('clickMenu', async menu => {
+    if (menu.id == "placementMenu") {
+        board.place_piece(place_coord, menu.values[0])
+        await menu.message.delete();
+        await show_board(menu.channel);
+    }
+});
 
 client.login(token);

@@ -6,6 +6,22 @@ class ChessBoard {
         this.white_space = "　";
         this.black_space = "口"
 
+        this.pieces = {
+            'White Rook': '♜',
+            'White Knight': '♞',
+            'White Bishop': '♝',
+            'White Queen': '♛',
+            'White King': '♚',
+            
+            'Black Rook': '♖',
+            'Black Knight': '♘',
+            'Black Bishop': '♗',
+            'Black Queen': '♕',
+            'Black King': '♔',
+
+            'Empty Space': 'EMPTY'
+        }
+
         this.black = [];
         this.white = [];
         this.shuffle_teams();
@@ -53,10 +69,10 @@ class ChessBoard {
                 this.board[i][j] = this.get_empty_space(i, j);
             }
         }
-        this.board[0] = ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'];
-        this.board[1] = ['♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎'];
-        this.board[6] = ['♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙'];
-        this.board[7] = ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖'];
+        this.board[7] = ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'];
+        this.board[6] = ['♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎'];
+        this.board[1] = ['♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙'];
+        this.board[0] = ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖'];
     }
 
     get_board_string() {
@@ -72,16 +88,18 @@ class ChessBoard {
 
     get_board_string_with_labels() {
         let output = "";
+        let digits = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣'];
         let count = 8;
         this.board.forEach(row => {
-            output += count + " ";
+            output += digits[count -1] + " | ";
             count--;
             row.forEach(cell => {
                 output += cell;
             });
             output += '\n';
         });
-        output += "/-A-B-C-D-E-F-G-H"
+        output += "///+---------------------\n"
+        output += "/// -A-B-C-D-E-F-G-H"
         return output;
     }
 
@@ -102,8 +120,20 @@ class ChessBoard {
             return false;
         coord1 = this.convert_coord(coord1);
         coord2 = this.convert_coord(coord2);
-        this.board[coord2[1]][coord2[0]] = this.board[coord1[1]][coord1[0]];
+        let cell = this.board[coord1[1]][coord1[0]];
         this.board[coord1[1]][coord1[0]] = this.get_empty_space(coord1[1], coord1[0])
+        this.board[coord2[1]][coord2[0]] = cell;        
+        return true;
+    }
+
+    place_piece(coord, piece_code) {
+        if (!(piece_code in this.pieces) || !this.is_valid_coord(coord))
+            return false;
+        coord = this.convert_coord(coord);
+        if (this.pieces[piece_code] == "EMPTY")
+            this.board[coord[1]][coord[0]] = this.get_empty_space(coord[1], coord[0]);
+        else
+            this.board[coord[1]][coord[0]] = this.pieces[piece_code];
         return true;
     }
 }

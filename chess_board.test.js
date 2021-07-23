@@ -30,25 +30,26 @@ test("Board placement", () => {
     w = board.white_space;
     b = board.black_space;
     expect(board.get_board_string()).toBe(
-        "♜♞♝♛♚♝♞♜\n" +
-        "♟︎♟︎♟︎♟︎♟︎♟︎♟︎♟︎\n" +
+        "♖♘♗♕♔♗♘♖\n" +
+        "♙♙♙♙♙♙♙♙\n" +
         w + b + w + b + w + b + w + b + "\n" +
         b + w + b + w + b + w + b + w + "\n" +
         w + b + w + b + w + b + w + b + "\n" + 
         b + w + b + w + b + w + b + w + "\n" +
-        "♙♙♙♙♙♙♙♙\n" +
-        "♖♘♗♕♔♗♘♖\n"
+        "♟︎♟︎♟︎♟︎♟︎♟︎♟︎♟︎\n" +
+        "♜♞♝♛♚♝♞♜\n"
     )
     expect(board.get_board_string_with_labels()).toBe(
-        "8 ♜♞♝♛♚♝♞♜\n" +
-        "7 ♟︎♟︎♟︎♟︎♟︎♟︎♟︎♟︎\n" +
-        "6 " + w + b + w + b + w + b + w + b + "\n" +
-        "5 " + b + w + b + w + b + w + b + w + "\n" +
-        "4 " + w + b + w + b + w + b + w + b + "\n" + 
-        "3 " + b + w + b + w + b + w + b + w + "\n" +
-        "2 ♙♙♙♙♙♙♙♙\n" +
-        "1 ♖♘♗♕♔♗♘♖\n" +
-        "/-A-B-C-D-E-F-G-H"
+        "8️⃣ | ♖♘♗♕♔♗♘♖\n" +
+        "7️⃣ | ♙♙♙♙♙♙♙♙\n" +
+        "6️⃣ | " + w + b + w + b + w + b + w + b + "\n" +
+        "5️⃣ | " + b + w + b + w + b + w + b + w + "\n" +
+        "4️⃣ | " + w + b + w + b + w + b + w + b + "\n" + 
+        "3️⃣ | " + b + w + b + w + b + w + b + w + "\n" +
+        "2️⃣ | ♟︎♟︎♟︎♟︎♟︎♟︎♟︎♟︎\n" +
+        "1️⃣ | ♜♞♝♛♚♝♞♜\n" +
+        "///+---------------------\n" + 
+        "/// -A-B-C-D-E-F-G-H"
     )
 })
 
@@ -83,21 +84,61 @@ test("Simple moves", () => {
         let convert1;
         let convert2;
         let cell1;
+        let cell2;
 
         if (valid1) {
             convert1 = board.convert_coord(coord1);
             cell1 = board.board[convert1[1]][convert1[0]];
         }
-        if (valid2)
+        if (valid2) {
             convert2 = board.convert_coord(coord2);
+            cell2 = board.board[convert2[1]][convert2[0]];
+        }
 
         let valid = board.move(coord1, coord2);
         
         expect(valid).toBe(valid1 && valid2);
         if (valid) {
-            expect(board.board[convert1[1]][convert1[0]]).toBe((convert1[1] + convert1[0] % 2 == 0 ? board.white_space : board.black_space));
+            if (coord1 != coord2)
+                expect(board.board[convert1[1]][convert1[0]]).toBe((convert1[1] + convert1[0] % 2 == 0 ? board.white_space : board.black_space));
             expect(board.board[convert2[1]][convert2[0]]).toBe(cell1);
         }
+        else {
+            if (valid1)
+                expect(board.board[convert1[1]][convert1[0]]).toBe(cell1);
+            if (valid2)
+                expect(board.board[convert2[1]][convert2[0]]).toBe(cell2);
+        }
     }    
+
     test_move("D2", "D4");
+    test_move("E0", "E1");
+    test_move("E1", "E1");
+    test_move("E4", "K8");
 });
+
+test("Place pieces", () => {
+    function test_place_piece(coord, piece_id) {
+        let valid_coord = board.is_valid_coord(coord);
+        let convert;
+        let prior_cell;
+        if (valid_coord) {
+            convert = board.convert_coord(coord);
+            prior_cell = board.board[convert[1]][convert[0]];
+        }
+
+        let valid_piece = piece_id in board.pieces;
+
+        let valid_placement = board.place_piece(coord, piece_id);
+        expect(valid_placement).toBe(valid_coord && valid_piece);
+        
+        if (valid_placement)
+            expect(board.board[convert[1]][convert[0]]).toBe(board.pieces[piece_id]);
+        else if (valid_coord)
+            expect(board.board[convert[1]][convert[0]]).toBe(prior_cell);
+    }
+
+    test_place_piece("A5", "Black Knight");
+    test_place_piece("K9", "Orange King");
+    test_place_piece("H4", "Blue Tower");
+})
